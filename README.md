@@ -20,8 +20,6 @@ background = rasterio.open('Material/background/raster-50k_2724246.tif')
 elevation = rasterio.open('Material/elevation/SZ.asc')
 ```
 
-
-
 ### geometry
 
 ```python
@@ -42,8 +40,6 @@ class ItnPoint(PointWithHeight):
     def get_fid(self):
         return self.__fid
 ```
-
-
 
 ### Task 1: User Input
 
@@ -111,7 +107,20 @@ def nearest_itn_node(input_node):
     """
   
   # 'Materialitn/solent_itn.json'为itn点信息
+    with open('Material/itn/solent_itn.json') as file:
+        itn_json = json.load(file)
+        
+    itn_road_nodes = itn_json['roadnodes']
+    itn_road_links = itn_json['roadlinks']
+    
   # 利用rtree找到距离input_node距离最近的itn
+    for itn_node_index, itn_node_info in enumerate(itn_road_nodes.items()):
+				# ...
+        itn_rtree_index.insert(id=, coordinates=)
+        # ...
+    
+  # ...
+  nearest_itn_to_input = itn_rtree_index.nearest(coordinates=,num_results=)
   
   
 	return nearest_itn_to_input
@@ -130,26 +139,67 @@ def nearest_itn_node(input_node):
 from shapely.geometry import LineString
 import networkx as nx
 
+class Edge:
+    def __init__(self, index, start_node, end_node, length):
+        self.index = index
+        self.start_node = start_node
+        self.end_node = end_node
+        self.length = length
+        self.height_diff = end_node.get_height() - start_node.get_height()
+        
+    # 利用两点间的高程差以及距离进行权重的设置
+    def add_weight(self):
+        base_weight = self.length / walking_speed
+        slope = self.height_diff / self.length * 100
+
+        # print(abs(self.height_diff / 10))
+        ascent_weight = base_weight + abs(self.height_diff / 10)
+
+        # there is no rule for descent scene
+        descent_weight = ascent_weight
+
+        return base_weight, ascent_weight, descent_weight
+
 shortest_path(node_begin, node_end):
     """
     :param node_begin: 类型为PointWithHeight,查询最短路径的起点
     :param node_end: 类型为PointWithHeight,查询最短路径的终点
-    :return shapely.geometry.LineString，返回距离最短路径和用时最短路径
+    :return 返回距离最短和时间最短路径，由shapely.geometry.LineString构成的GeoDataframe（方便task_5绘图）
     """
     
     # 利用两点间的高程差以及距离进行权重的设置，类似于：
     # nodes[n]和nodes[n+1]连接的路线的最终权重为weight = 						 
     #                                 weight_distance+weight_height
+    
     # 计算出每两点间的权重，最后可以通过networkx计算最短路径
+    graph = nx.DiGraph()
+    # ...
+    graph.add_edge(...)
+    short_path = nx.dijkstra_path(G=graph, source=, target=, weight='length')
+    #... 
+    
+    # result
+    short_distance_path_df = gpd.GeoDataFrame({'fid':..., 'geometry': [LineString(),LineString(),...]})
+    short_time_path_df =  gpd.GeoDataFrame({'fid':..., 'geometry': [LineString(),LineString(),...]})
   
 	return short_distance_path_df, short_time_path_df
 ```
 
-1. `weight`：weight_base + weight_height
+1. `Edge class`: 存放两点所组成的路径信息，来计算最终自身的weight
+
+2. `weight`：weight_base + weight_height
+
    - weight_base：路程/速度
    - weight_height：爬高/爬低导致的weight的增减
-2. `networkx.dijkstra_path`：
-3. 测试时该过程较慢，因此在此加了一个进度条
+
+3. `networkx.dijkstra_path(G, source, target, weight)`：
+
+4. 测试时该过程较慢，因此在此加了一个进度条
+
+   - 较慢原因：获取每一给itn点的高程需要每一次都从elevation高程数据搜索一次
+
+   - 优化点：缩小搜索范围
+   - 目前在代码中暂时先写入一个常数值作为每个点的高程（无高程差）进行测试
 
 ### Task 5: Map Plotting
 
@@ -171,19 +221,33 @@ class Plotter:
 # 感觉 可以结合task_1.py
 ```
 
-
-
 ### main
 
 ```python
 # main.py
+		
+  # 1
+  user_input_point = user_input()
+  # 2
+  input_p, highest_p = highest_point_identify(user_input_point)
+	# 3
+  input_nearest_itn = nearest_itn_node(input_p.get_geometry())
+  highest_nearest_itn = nearest_itn_node(highest_p.get_geometry())
+  # 4
+  short_distance_path_data, short_time_path_data = shortest_path(input_nearest_itn, highest_nearest_itn)
+  # 5
+  Plotter.plot()
 
 
 ```
 
+### TODO
 
-
-
+- [ ] Task6
+- [ ] Too slow
+- [ ] Plotter class
+- [ ] Error class
+- [ ] Task 4 how to add weight
 
 
 

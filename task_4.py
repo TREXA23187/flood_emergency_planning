@@ -40,7 +40,7 @@ def shortest_path(point_start, point_end):
     """
     :param point_start: ItnPoint
     :param point_end: ItnPoint
-    :return 返回最短路径，类型待定，可以返回类似shapely.geometry.LineString或自己封装路径/线类型的class
+    :return 返回距离最短和时间最短路径，由shapely.geometry.LineString构成的GeoDataframe
     """
     with open('Material/itn/solent_itn.json') as file:
         itn_json = json.load(file)
@@ -48,7 +48,6 @@ def shortest_path(point_start, point_end):
     itn_road_nodes = itn_json['roadnodes']
     itn_road_links = itn_json['roadlinks']
 
-    # TODO: it's a little bit slow, want to add a progress bar
     edge_list = []
 
     total = len(itn_road_links.items())
@@ -74,6 +73,7 @@ def shortest_path(point_start, point_end):
         start_node = ItnPoint(start_x, start_y, 23, itn_link_info['start'])
         end_node = ItnPoint(end_x, end_y, 34, itn_link_info['end'])
 
+        # progress bar
         if round(progress / total) <= 100 and round(progress / total * 100) % 2 == 0:
             spent_time = time.perf_counter() - start
             print("\r", end="")
@@ -109,9 +109,9 @@ def shortest_path(point_start, point_end):
             graph.add_edge(edge.end_node.get_fid(), edge.start_node.get_fid(), fid=edge.index, length=edge.length,
                            weight=ascent_weight)
 
-    short_distance_path = nx.dijkstra_path(graph, source=point_start.get_fid(), target=point_end.get_fid(),
+    short_distance_path = nx.dijkstra_path(G=graph, source=point_start.get_fid(), target=point_end.get_fid(),
                                            weight='length')
-    short_time_path = nx.dijkstra_path(graph, source=point_start.get_fid(), target=point_end.get_fid(), weight='time')
+    short_time_path = nx.dijkstra_path(G=graph, source=point_start.get_fid(), target=point_end.get_fid(), weight='time')
 
     short_distance_path_fids = []
     short_distance_path_geometry = []
