@@ -1,0 +1,43 @@
+from rtree import index
+from shapely.geometry import Point
+import json
+from geometry import ItnPoint
+from task_2 import get_height_from_xy
+
+
+def nearest_itn_node(input_point):
+    """
+    :param input_point: Point(x,y) 类型为shapely.geometry.Point
+    :return ItnPoint，即距离input_node最近的itn点，且携带高程信息
+    """
+
+    # 'Materialitn/solent_itn.json'为itn点信息
+    with open('Material/itn/solent_itn.json') as file:
+        itn_json = json.load(file)
+
+    itn_rtree_index = index.Index()
+    itn_road_nodes = itn_json['roadnodes']
+
+    # itn_node_index -> 1,2,3...10457
+    # itn_node_info  -> ('osgb5000005230555073', {'coords': [449795.562, 95242.886]})
+    # itn_node_info[0] -> 'osgb5000005230555073'
+    # itn_node_info[1] -> {'coords': [449795.562, 95242.886]}
+    for itn_node_index, itn_node_info in enumerate(itn_road_nodes.items()):
+        node_coordinates = (itn_node_info[1]['coords'][0], itn_node_info[1]['coords'][1])
+        itn_rtree_index.insert(id=itn_node_index, coordinates=node_coordinates, obj=itn_node_info[0])
+
+    # 利用rtree找到距离input_node距离最近的itn
+    nearest_itn_to_input = None
+    for fid in itn_rtree_index.nearest(coordinates=(input_point.x, input_point.y), num_results=1, objects='raw'):
+        coordinates = itn_road_nodes[fid]['coords']
+        x, y = coordinates
+
+        nearest_itn_to_input = ItnPoint(x, y, get_height_from_xy(x, y), fid)
+
+    return nearest_itn_to_input
+
+
+if __name__ == '__main__':
+    nearest_itn = nearest_itn_node(Point(450000, 85000))
+    print(nearest_itn.get_geometry())
+    print(nearest_itn.get_height())
