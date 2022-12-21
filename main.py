@@ -11,12 +11,13 @@ CRS_BNG = CRS('epsg:27700')
 
 def main():
     # TODO：use user input from task_1
-    input_p, highest_p = highest_point_identify(Point(450000, 85000))
+    input_p, highest_p, rc_height_hash_table = highest_point_identify(Point(450000, 85000))
 
-    input_nearest_itn = nearest_itn_node(input_p.get_geometry())
-    highest_nearest_itn = nearest_itn_node(highest_p.get_geometry())
+    input_nearest_itn = nearest_itn_node(input_p.get_geometry(), rc_height_hash_table=rc_height_hash_table)
+    highest_nearest_itn = nearest_itn_node(highest_p.get_geometry(), rc_height_hash_table=rc_height_hash_table)
 
-    short_distance_path_data, short_time_path_data = shortest_path(input_nearest_itn, highest_nearest_itn)
+    short_distance_path_data, short_time_path_data = shortest_path(input_nearest_itn, highest_nearest_itn,
+                                                                   rc_height_hash_table=rc_height_hash_table)
 
     ax = plot_sample()
     short_distance_path_data.plot(ax=ax, linewidth=3, color='red', alpha=.7)

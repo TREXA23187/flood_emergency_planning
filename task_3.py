@@ -2,16 +2,17 @@ from rtree import index
 from shapely.geometry import Point
 import json
 from geometry import ItnPoint
-from task_2 import get_height_from_xy
+from task_2 import highest_point_identify, get_height_from_xy
 
 
-def nearest_itn_node(input_point):
+def nearest_itn_node(input_point, rc_height_hash_table=None):
     """
-    :param input_point: Point(x,y) 类型为shapely.geometry.Point
-    :return ItnPoint，即距离input_node最近的itn点，且携带高程信息
+    :param input_point: Point(x,y) which is shapely.geometry.Point
+    :param rc_height_hash_table: hash table with (row,col):height
+    :return ItnPoint，nearest itn to input_node with height info
     """
 
-    # 'Materialitn/solent_itn.json'为itn点信息
+    # read itn info
     with open('Material/itn/solent_itn.json') as file:
         itn_json = json.load(file)
 
@@ -26,18 +27,21 @@ def nearest_itn_node(input_point):
         node_coordinates = (itn_node_info[1]['coords'][0], itn_node_info[1]['coords'][1])
         itn_rtree_index.insert(id=itn_node_index, coordinates=node_coordinates, obj=itn_node_info[0])
 
-    # 利用rtree找到距离input_node距离最近的itn
+    # find nearest itn to input_node via rtree
     nearest_itn_to_input = None
+
+    # fid = itn_rtree_index.nearest(coordinates=(input_point.x, input_point.y), num_results=1, objects='raw').__next__()
     for fid in itn_rtree_index.nearest(coordinates=(input_point.x, input_point.y), num_results=1, objects='raw'):
         coordinates = itn_road_nodes[fid]['coords']
         x, y = coordinates
 
-        nearest_itn_to_input = ItnPoint(x, y, get_height_from_xy(x, y), fid)
+        nearest_itn_to_input = ItnPoint(x, y, get_height_from_xy(x, y, hash_table=rc_height_hash_table), fid)
 
     return nearest_itn_to_input
 
 
 if __name__ == '__main__':
-    nearest_itn = nearest_itn_node(Point(450000, 85000))
-    print(nearest_itn.get_geometry())
+    input_p, highest_p, row_col_height_hash_table = highest_point_identify(Point(450000, 85000))
+    nearest_itn = nearest_itn_node(Point(450000, 85000), row_col_height_hash_table)
+    # print(nearest_itn.get_geometry())
     print(nearest_itn.get_height())

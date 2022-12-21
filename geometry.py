@@ -1,7 +1,5 @@
 from shapely.geometry import Point
 
-
-# 封装可携带高程信息的Point类型，可以扩展一下
 class PointWithHeight:
     def __init__(self, x, y, height):
         self.__x = x
