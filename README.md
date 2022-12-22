@@ -1498,12 +1498,12 @@ def shortest_path(point_start, point_end, rc_height_hash_table=None):
     return short_distance_path_df, short_time_path_df
 ```
 
-1. `Edge class`: 存放两点所组成的路径信息，来计算最终自身的weight
+1. `Edge class`: Store the final weight of path
 2. `weight`：weight_base + weight_height
    - weight_base：length / speed which is the basic time. (metre/per minute)
    - weight_height：cost of height ascending or descending = height_difference / 10  (metre/per minute)
 3. `networkx.dijkstra_path(G, source, target, weight)`：
-4. 测试时该过程较慢，因此在此加了一个进度条
+4. For each point, the process of obtaining its altitude information is relatively slow as mentioned in TASK_2
 
    - Reason for slowness: it is required to excute `elevation.read(1)[row,col]` every time when calculate the height of each given ITN-point
 
