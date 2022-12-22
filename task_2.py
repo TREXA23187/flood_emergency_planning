@@ -43,36 +43,28 @@ def define_hash():
     hash_table = {}
     elevation_matrix = elevation.read(1)  # 5000,9000
 
-    print('>>>>>>>>>>>>>generating row_col_height_hash_table in TASK_2')
+    print('>>>>>>>>>>>>> Generating row_col_height_hash_table in TASK_2')
     for row in range(len(elevation_matrix)):
         for col in range(len(elevation_matrix[0])):
             hash_table[(row, col)] = elevation_matrix[row][col]
 
     spend_time = time.perf_counter() - start
-    print(f'>>>>>>>>>>>>>generated row_col_height_hash_table! Spent {spend_time.__format__(".2f")} s')
+    print(f'>>>>>>>>>>>>> Generated row_col_height_hash_table! Spent {spend_time.__format__(".2f")} s')
 
     return hash_table
 
 
-def test_time():
-    start = time.perf_counter()
-    (row, col) = elevation.index(450000, 85000)
-    mid = time.perf_counter() - start  # e-05
-    x, y = elevation.xy(row, col)
-    end = time.perf_counter() - mid  # 1
-    print(mid, end)
-
-
-def highest_point_identify(input_point, buffer_radius=5):
+def highest_point_identify(input_point, buffer_radius=5 * 1000):
     """
-    :param input_point: task_1中return的用户输入的值，类型为shapely.geometry.Point
-    :param buffer_radius: 缓冲区范围，根据任务书默认为5km范围，防止后续可能更变因此以参数形式输入
-    :return: 类型为PointWithHeight, 第一个PointWithHeight为参数输入的input_point携带height后返回 \
-            （因为在task_1中的Point还未携带height信息），第二个返回buffer范围内最高点信息
+    :param input_point: shapely.geometry.Point,user input point form task_1
+    :param buffer_radius: radius of buffer, default is 5km
+    :return: (PointWithHeight,PointWithHeight,{}),
+                first is the point user input with its height info,
+                second is the highest point within given radius,
+                third is a hash table storing (row,col)=>height
     """
 
-    # 以point为中心，建立buffer范围的缓冲区，默认范围为5km
-    buffer = input_point.buffer(buffer_radius * 1000)
+    buffer = input_point.buffer(buffer_radius)
 
     elev_boundary_right_top = (elevation.bounds[2], elevation.bounds[3])
     elev_boundary_left_top = (elevation.bounds[0], elevation.bounds[3])
@@ -85,14 +77,13 @@ def highest_point_identify(input_point, buffer_radius=5):
     input_point_height = get_height_from_xy(input_point.x, input_point.y, height_data=elevation)
     point_input_with_height = PointWithHeight(input_point.x, input_point.y, input_point_height)
 
-    # 防止buffer超出elevation范围
+    # Prevent buffer from exceeding the elevation range
     mask_cropped_by_mbr = buffer.intersection(elevation_mbr)
     masked_elevation_raster, transformer = rasterio.mask.mask(dataset=elevation, shapes=[mask_cropped_by_mbr],
                                                               crop=True, nodata=0, filled=False)
 
     row_col_height_hash_table = define_hash()
 
-    # 利用'Material/elevation/SZ.asc'文件获取该范围内最高点
     highest_value = np.max(masked_elevation_raster)
     highest_point_x, highest_point_y = get_xy_from_height(height_value=highest_value,
                                                           height_data=masked_elevation_raster,
@@ -108,4 +99,3 @@ if __name__ == '__main__':
     # print(xy_hash_table[(2500, 4000)])
     # print(input_p.get_height())
     # print(highest_p.get_geometry())
-    # test_time()

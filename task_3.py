@@ -11,6 +11,7 @@ def nearest_itn_node(input_point, rc_height_hash_table=None):
     :param rc_height_hash_table: hash table with (row,col):height
     :return ItnPoint，nearest itn to input_node with height info
     """
+    print('>>>>>>>>>>>>> Progressing nearest_itn_node in TASK_3')
 
     # read itn info
     with open('Material/itn/solent_itn.json') as file:
@@ -42,6 +43,7 @@ def nearest_itn_node(input_point, rc_height_hash_table=None):
 
 if __name__ == '__main__':
     input_p, highest_p, row_col_height_hash_table = highest_point_identify(Point(450000, 85000))
-    nearest_itn = nearest_itn_node(Point(450000, 85000), row_col_height_hash_table)
-    # print(nearest_itn.get_geometry())
-    print(nearest_itn.get_height())
+    nearest_input_itn = nearest_itn_node(input_p.get_geometry(), row_col_height_hash_table)
+    nearest_highest_itn = nearest_itn_node(highest_p.get_geometry(), row_col_height_hash_table)
+
+    print(nearest_highest_itn.get_height())
