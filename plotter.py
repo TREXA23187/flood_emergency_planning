@@ -25,7 +25,6 @@ class Plotter:
         self.__base_figure = plt.figure(figsize=(9, 6), dpi=100)
         self.__ax = self.__base_figure.add_subplot(111)
         self.__ax.set_axis_off()
-
         self.crs = crs
 
     def get_figure(self):
@@ -35,7 +34,22 @@ class Plotter:
         vector.to_crs(self.crs).plot(ax=self.__ax, **kwargs)
 
     def add_raster(self, raster, **kwargs):
-        raster_plot.show(raster, ax=self.__ax, **kwargs)
+        retted = raster_plot.show(raster, ax=self.__ax, **kwargs)
+        im = retted.get_images()[0]
+
+        cax = self.__base_figure.add_axes(
+            [self.__ax.get_position().x1 + 0.01, self.__ax.get_position().y0, 0.015,
+             self.__ax.get_position().height])
+
+        self.__base_figure.colorbar(im, cax=cax)
+
+    def add_buffer(self, x, y, radius, **kwargs):
+        buffer_circle = mpatches.Circle((x, y), radius, **kwargs)
+        self.__ax.add_artist(buffer_circle)
+
+    def set_xy_lim(self, x_min, x_max, y_min, y_max):
+        plt.xlim(x_min, x_max)
+        plt.ylim(y_min, y_max)
 
     def add_north(self, label_size=10, loc_x=0.95, loc_y=0.95, width=0.05, height=0.1, pad=0.1):
         """
@@ -85,18 +99,21 @@ class Plotter:
     # TODO: add legend
     def add_legend(self):
         ax = self.__ax
-        isle_of_wight = mpatches.Patch(color='white', label='isle of wight',alpha=.5)
+        isle_of_wight = mpatches.Patch(color='white', label='isle of wight', alpha=.5)
 
         road, = ax.plot([], label="road", color='black')
         shortest_distance_path, = ax.plot([], label="shortest distance path", color='red', linewidth=3)
         shortest_time_path, = ax.plot([], label="shortest time path", color='blue', linewidth=3)
+        paths_coincide, = ax.plot([], label="paths coincide", color='purple', linewidth=3)
 
-        ax.legend(handles=[isle_of_wight, road, shortest_distance_path, shortest_time_path], loc='lower left',
-                  fontsize='small')
+        ax.legend(handles=[isle_of_wight, road, shortest_distance_path, shortest_time_path, paths_coincide],
+                  loc='center left',
+                  fontsize='small',
+                  bbox_to_anchor=(0, .1))
 
     def show(self):
         self.add_north()
-        self.add_scale_bar(lon0=462500, lat0=77000)
+        self.add_scale_bar(lon0=452500, lat0=77000)
         self.add_legend()
 
         plt.show()

@@ -54,7 +54,7 @@ def define_hash():
     return hash_table
 
 
-def highest_point_identify(input_point, buffer_radius=5 * 1000):
+def highest_point_identify(input_point, buffer_radius):
     """
     :param input_point: shapely.geometry.Point,user input point form task_1
     :param buffer_radius: radius of buffer, default is 5km
