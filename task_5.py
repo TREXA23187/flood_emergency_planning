@@ -22,23 +22,45 @@ def plot_result(start_point, end_point):
     # plotter.add_vector(road_nodes, markersize=2, color='grey', alpha=.3)
     # plotter.add_vector(road_links, linewidth=1, color='black', alpha=.5)
     plotter.add_buffer(start_point.get_geometry().x, start_point.get_geometry().y, radius=buffer_radius, alpha=.3)
-    x_min = max(425000, start_point.get_geometry().x - map_view_range / 2)
-    x_max = min(470000, start_point.get_geometry().x + map_view_range / 2)
-    y_min = max(75000, start_point.get_geometry().y - map_view_range / 2)
-    y_max = min(100000, start_point.get_geometry().y + map_view_range / 2)
+
+    start_x = start_point.get_geometry().x
+    start_y = start_point.get_geometry().y
+
+    x_min = max(map_x_min, start_x - map_view_range / 2)
+    x_max = min(map_x_max, start_x + map_view_range / 2)
+    y_min = max(map_y_min, start_y - map_view_range / 2)
+    y_max = min(map_y_max, start_y + map_view_range / 2)
+
+    # reset map view to 20*20 km2 if out of range
+    if x_max - x_min != map_view_range:
+        if x_min == map_x_min:
+            x_max += map_x_min - (start_x - map_view_range / 2)
+        if x_max == map_x_max:
+            x_min -= (start_x + map_view_range / 2) - map_x_max
+
+    if y_max - y_min != map_view_range:
+        if y_min == map_y_min:
+            y_max += map_y_min - (start_y - map_view_range / 2)
+        if y_max == map_y_max:
+            y_min -= (start_y + map_view_range / 2) - map_y_max
+
     plotter.set_xy_lim(x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max)
 
     plotter.add_raster(background, cmap='terrain')
 
-    ax.scatter([start_point.get_geometry().x, end_point.get_geometry().x],
-               [start_point.get_geometry().y, end_point.get_geometry().y], s=15, color='black')
+    plotter.add_point(start_point.get_geometry().x, start_point.get_geometry().y, color='red', markersize=3)
+    plotter.add_point(end_point.get_geometry().x, end_point.get_geometry().y, color='green', markersize=3)
 
-    ax.annotate('start', xy=(start_point.get_geometry().x, start_point.get_geometry().y), color='blue')
-    ax.annotate('end', xy=(end_point.get_geometry().x, end_point.get_geometry().y), color='green')
+    plotter.add_legend(legend_type='point', legend_label='start point', color='red', markersize=3)
+    plotter.add_legend(legend_type='point', legend_label='end point', color='green', markersize=3)
+    plotter.add_legend(legend_type='line', legend_label='road', color='brown')
+    plotter.add_legend(legend_type='line', legend_label='shortest distance path', color='blue', linewidth=3)
+    plotter.add_legend(legend_type='line', legend_label='shortest time path', color='red', linewidth=3)
+    plotter.add_legend(legend_type='line', legend_label='if paths coincide', color='purple', linewidth=3)
 
     return plotter
 
 
 if __name__ == '__main__':
-    plter = plot_result(PlainPoint(450000, 85000), PlainPoint(450000, 85000))
+    plter = plot_result(PlainPoint(440000, 92000), PlainPoint(450000, 85000))
     plter.show()

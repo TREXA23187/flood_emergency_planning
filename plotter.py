@@ -26,21 +26,26 @@ class Plotter:
         self.__ax = self.__base_figure.add_subplot(111)
         self.__ax.set_axis_off()
         self.crs = crs
+        self.__legend_ax = None
+        self.__legends = []
 
     def get_figure(self):
         return self.__base_figure, self.__ax
+
+    def add_point(self, x, y, **kwargs):
+        self.__ax.plot(x, y, 'o', **kwargs)
 
     def add_vector(self, vector, **kwargs):
         vector.to_crs(self.crs).plot(ax=self.__ax, **kwargs)
 
     def add_raster(self, raster, **kwargs):
-        retted = raster_plot.show(raster, ax=self.__ax, **kwargs)
-        im = retted.get_images()[0]
+        raster_image = raster_plot.show(raster, ax=self.__ax, **kwargs)
+        im = raster_image.get_images()[0]
 
         cax = self.__base_figure.add_axes(
             [self.__ax.get_position().x1 + 0.01, self.__ax.get_position().y0, 0.015,
              self.__ax.get_position().height])
-
+        self.__legend_ax = cax
         self.__base_figure.colorbar(im, cax=cax)
 
     def add_buffer(self, x, y, radius, **kwargs):
@@ -51,7 +56,7 @@ class Plotter:
         plt.xlim(x_min, x_max)
         plt.ylim(y_min, y_max)
 
-    def add_north(self, label_size=10, loc_x=0.95, loc_y=0.95, width=0.05, height=0.1, pad=0.1):
+    def add_north(self, label_size=10, loc_x=0.95, loc_y=1, width=0.04, height=0.06, pad=0.1):
         """
         Add a north arrow with 'N' text note
         :param label_size: size of 'N'
@@ -65,22 +70,22 @@ class Plotter:
         ax = self.__ax
         minx, maxx = ax.get_xlim()
         miny, maxy = ax.get_ylim()
-        ylen = maxy - miny
-        xlen = maxx - minx
-        left = [minx + xlen * (loc_x - width * .5), miny + ylen * (loc_y - pad)]
-        right = [minx + xlen * (loc_x + width * .5), miny + ylen * (loc_y - pad)]
-        top = [minx + xlen * loc_x, miny + ylen * (loc_y - pad + height)]
-        center = [minx + xlen * loc_x, left[1] + (top[1] - left[1]) * .4]
+        y_len = maxy - miny
+        x_len = maxx - minx
+        left = [minx + x_len * (loc_x - width * .5), miny + y_len * (loc_y - pad)]
+        right = [minx + x_len * (loc_x + width * .5), miny + y_len * (loc_y - pad)]
+        top = [minx + x_len * loc_x, miny + y_len * (loc_y - pad + height)]
+        center = [minx + x_len * loc_x, left[1] + (top[1] - left[1]) * .4]
         triangle = mpatches.Polygon([left, top, right, center], color='k')
         ax.text(s='N',
-                x=minx + xlen * loc_x,
-                y=miny + ylen * (loc_y - pad + height),
+                x=minx + x_len * loc_x,
+                y=miny + y_len * (loc_y - pad + height),
                 fontsize=label_size,
                 horizontalalignment='center',
                 verticalalignment='bottom')
         ax.add_patch(triangle)
 
-    def add_scale_bar(self, lon0, lat0, length=2000, size=200):
+    def add_scale_bar(self, label_size=10, loc_x=0.85, loc_y=0.15, length=2000, size=200, pad=0.1):
         """
         lon0: longitude
         lat0: latitude
@@ -88,32 +93,46 @@ class Plotter:
         size: size
         """
         ax = self.__ax
-        ax.hlines(y=lat0, xmin=lon0, xmax=lon0 + length, colors="black", ls="-", lw=1, label=f'{length} km')
-        ax.vlines(x=lon0, ymin=lat0, ymax=lat0 + size, colors="black", ls="-", lw=1)
-        ax.vlines(x=lon0 + length, ymin=lat0, ymax=lat0 + size, colors="black", ls="-", lw=1)
+        minx, maxx = ax.get_xlim()
+        miny, maxy = ax.get_ylim()
+        x_len = maxx - minx
+        y_len = maxy - miny
 
-        scale_distance = distance([lon0, lat0], [lon0 + length, lat0])
+        lon = minx + x_len * loc_x
+        lat = miny + y_len * (loc_y - pad)
 
-        ax.text(lon0 + length / 2, lat0 + 2 * size, f'{int(scale_distance / 1000)} km', horizontalalignment='center')
+        ax.hlines(y=lat, xmin=lon, xmax=lon + length, colors="black", ls="-", lw=1)
+        ax.vlines(x=lon, ymin=lat, ymax=lat + size, colors="black", ls="-", lw=1)
+        ax.vlines(x=lon + length, ymin=lat, ymax=lat + size, colors="black", ls="-", lw=1)
 
-    # TODO: add legend
-    def add_legend(self):
+        scale_distance = distance([lon, lat], [lon + length, lat])
+        ax.text(s=f'{int(scale_distance / 1000)} km',
+                x=lon + length / 2,
+                y=lat + 2 * size,
+                fontsize=label_size,
+                horizontalalignment='center',
+                verticalalignment='bottom')
+
+    def add_legend(self, legend_type, legend_label, **kwargs):
         ax = self.__ax
-        isle_of_wight = mpatches.Patch(color='white', label='isle of wight', alpha=.5)
+        if legend_type == 'point':
+            point_legend, = ax.plot([], 'o', label=legend_label, **kwargs)
+            self.__legends += [point_legend]
+        elif legend_type == 'line':
+            line_legend, = ax.plot([], label=legend_label, **kwargs)
+            self.__legends += [line_legend]
+        else:
+            polygon_legend = mpatches.Patch(label='isle of wight', **kwargs)
+            self.__legends += [polygon_legend]
 
-        road, = ax.plot([], label="road", color='black')
-        shortest_distance_path, = ax.plot([], label="shortest distance path", color='red', linewidth=3)
-        shortest_time_path, = ax.plot([], label="shortest time path", color='blue', linewidth=3)
-        paths_coincide, = ax.plot([], label="paths coincide", color='purple', linewidth=3)
-
-        ax.legend(handles=[isle_of_wight, road, shortest_distance_path, shortest_time_path, paths_coincide],
-                  loc='center left',
-                  fontsize='small',
-                  bbox_to_anchor=(0, .1))
+    def show_legend(self):
+        self.__ax.legend(handles=self.__legends, loc='center left', fontsize='x-small', bbox_to_anchor=(0, .1))
 
     def show(self):
+        self.__ax.set_title('Feasible path planning', fontsize=17)
+        self.__legend_ax.set_title('Elevation/m', fontsize=8)
         self.add_north()
-        self.add_scale_bar(lon0=452500, lat0=77000)
-        self.add_legend()
+        self.add_scale_bar()
+        self.show_legend()
 
         plt.show()
