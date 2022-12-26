@@ -11,25 +11,29 @@ def generate_box(x_min, y_min, x_max, y_max):
 
 # TODO: add task6 and finish like in README.md
 def user_input():
-    x = float(input('please input a coordinates x: '))
-    y = float(input('please input a coordinates y: '))
+    try:
+        x = float(input('please input a coordinates x: '))
+        y = float(input('please input a coordinates y: '))
 
-    box = generate_box(x_min=map_x_min + 5000, x_max=map_x_max - 5000, y_min=map_y_min + 5000, y_max=map_y_max - 5000)
-    input_point = Point(x, y)
+        box = generate_box(x_min=map_x_min, x_max=map_x_max, y_min=map_y_min,
+                           y_max=map_y_max)
+        input_point = Point(x, y)
 
-    # in isle area
-    if isle_of_wight.contains(input_point).iloc[0] or isle_of_wight.touches(input_point).iloc[0]:
-        # in bounding box
-        if box.contains(input_point) or box.touches(input_point):
-            print(f'>>>>>>>>>>>>> Input Point({input_point.x},{input_point.y}) is inside given bound area')
-            return input_point, 1
+        # in isle area
+        if isle_of_wight.contains(input_point).iloc[0] or isle_of_wight.touches(input_point).iloc[0]:
+            # in bounding box
+            if box.contains(input_point) or box.touches(input_point):
+                print(
+                    f'>>>>>>>>>>>>> Input Point({input_point.x},{input_point.y}) is inside given bound area in TASK_1')
+                return input_point, 1
 
+            else:
+                print(f'>>>>>>>>>>>>> Input Point({input_point.x},{input_point.y}) is inside given isle area in TASK_1')
+                return input_point, 2
         else:
-            print(f'>>>>>>>>>>>>> Input Point({input_point.x},{input_point.y}) is inside given isle area')
-            return input_point, 2
-    else:
-        print(f'>>>>>>>>>>>>> Input Point({input_point.x},{input_point.y}) is outside given area')
-        quit()
+            raise Exception(f'Input Point({input_point.x},{input_point.y}) is outside given area')
+    except Exception as error:
+        raise Exception(f'{error} ==> TASK_1')
 
 
 if __name__ == '__main__':

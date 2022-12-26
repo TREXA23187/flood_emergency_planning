@@ -11,34 +11,37 @@ def nearest_itn_node(input_point, rc_height_hash_table=None):
     :param rc_height_hash_table: hash table with (row,col):height
     :return ItnPoint，nearest itn to input_node with height info
     """
-    print('>>>>>>>>>>>>> Progressing nearest_itn_node in TASK_3')
 
-    # read itn info
-    with open('Material/itn/solent_itn.json') as file:
-        itn_json = json.load(file)
+    try:
+        print('>>>>>>>>>>>>> Progressing nearest_itn_node in TASK_3')
 
-    itn_rtree_index = index.Index()
-    itn_road_nodes = itn_json['roadnodes']
+        # read itn info
+        with open('Material/itn/solent_itn.json') as file:
+            itn_json = json.load(file)
 
-    # itn_node_index -> 1,2,3...10457
-    # itn_node_info  -> ('osgb5000005230555073', {'coords': [449795.562, 95242.886]})
-    # itn_node_info[0] -> 'osgb5000005230555073'
-    # itn_node_info[1] -> {'coords': [449795.562, 95242.886]}
-    for itn_node_index, itn_node_info in enumerate(itn_road_nodes.items()):
-        node_coordinates = (itn_node_info[1]['coords'][0], itn_node_info[1]['coords'][1])
-        itn_rtree_index.insert(id=itn_node_index, coordinates=node_coordinates, obj=itn_node_info[0])
+        itn_rtree_index = index.Index()
+        itn_road_nodes = itn_json['roadnodes']
 
-    # find nearest itn to input_node via rtree
-    nearest_itn_to_input = None
+        # itn_node_index -> 1,2,3...10457
+        # itn_node_info  -> ('osgb5000005230555073', {'coords': [449795.562, 95242.886]})
+        # itn_node_info[0] -> 'osgb5000005230555073'
+        # itn_node_info[1] -> {'coords': [449795.562, 95242.886]}
+        for itn_node_index, itn_node_info in enumerate(itn_road_nodes.items()):
+            node_coordinates = (itn_node_info[1]['coords'][0], itn_node_info[1]['coords'][1])
+            itn_rtree_index.insert(id=itn_node_index, coordinates=node_coordinates, obj=itn_node_info[0])
 
-    # fid = itn_rtree_index.nearest(coordinates=(input_point.x, input_point.y), num_results=1, objects='raw').__next__()
-    for fid in itn_rtree_index.nearest(coordinates=(input_point.x, input_point.y), num_results=1, objects='raw'):
-        coordinates = itn_road_nodes[fid]['coords']
-        x, y = coordinates
+        # find nearest itn to input_node via rtree
+        nearest_itn_to_input = None
 
-        nearest_itn_to_input = ItnPoint(x, y, get_height_from_xy(x, y, hash_table=rc_height_hash_table), fid)
+        for fid in itn_rtree_index.nearest(coordinates=(input_point.x, input_point.y), num_results=1, objects='raw'):
+            coordinates = itn_road_nodes[fid]['coords']
+            x, y = coordinates
 
-    return nearest_itn_to_input
+            nearest_itn_to_input = ItnPoint(x, y, get_height_from_xy(x, y, hash_table=rc_height_hash_table), fid)
+
+        return nearest_itn_to_input
+    except Exception as error:
+        raise Exception(f'{error} ==> TASK_3')
 
 
 if __name__ == '__main__':

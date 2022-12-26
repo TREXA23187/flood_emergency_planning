@@ -32,60 +32,64 @@ def shortest_path(point_start, point_end, rc_height_hash_table=None):
     :param rc_height_hash_table: hash table with (row,col):height
     :return short_distance_path and short_time_path，GeoDataframe whose geometry columns are all LineString
     """
-    print('>>>>>>>>>>>>> Progressing shortest_path in TASK_4')
 
-    with open('Material/itn/solent_itn.json') as file:
-        itn_json = json.load(file)
+    try:
+        print('>>>>>>>>>>>>> Progressing shortest_path in TASK_4')
 
-    itn_road_nodes = itn_json['roadnodes']
-    itn_road_links = itn_json['roadlinks']
+        with open('Material/itn/solent_itn.json') as file:
+            itn_json = json.load(file)
 
-    edge_list = []
+        itn_road_nodes = itn_json['roadnodes']
+        itn_road_links = itn_json['roadlinks']
 
-    for itn_link_index, itn_link_info in itn_road_links.items():
-        # itn_link_index -> 'osgb4000000026240481'
-        # itn_link_info  -> {'length': 330.77,
-        #                  'coords': [[], [], []], 'start': 'osgb4000000026240451', 'end': 'osgb5000005189928990',
-        #                  'natureOfRoad': 'Single Carriageway', 'descriptiveTerm': 'Private Road - Restricted Access'}
-        # itn_link_info.keys() -> ['length', 'coords', 'start', 'end', 'natureOfRoad', 'descriptiveTerm']
+        edge_list = []
 
-        start_x = itn_road_nodes[itn_link_info['start']]['coords'][0]
-        start_y = itn_road_nodes[itn_link_info['start']]['coords'][1]
-        end_x = itn_road_nodes[itn_link_info['end']]['coords'][0]
-        end_y = itn_road_nodes[itn_link_info['end']]['coords'][1]
-        start_h = get_height_from_xy(start_x, start_y, hash_table=rc_height_hash_table)
-        end_h = get_height_from_xy(end_x, end_y, hash_table=rc_height_hash_table)
+        for itn_link_index, itn_link_info in itn_road_links.items():
+            # itn_link_index -> 'osgb4000000026240481'
+            # itn_link_info  -> {'length': 330.77,
+            #               'coords': [[], [], []], 'start': 'osgb4000000026240451', 'end': 'osgb5000005189928990',
+            #               'natureOfRoad': 'Single Carriageway', 'descriptiveTerm': 'Private Road - Restricted Access'}
+            # itn_link_info.keys() -> ['length', 'coords', 'start', 'end', 'natureOfRoad', 'descriptiveTerm']
 
-        start_node = ItnPoint(start_x, start_y, start_h, itn_link_info['start'])
-        end_node = ItnPoint(end_x, end_y, end_h, itn_link_info['end'])
+            start_x = itn_road_nodes[itn_link_info['start']]['coords'][0]
+            start_y = itn_road_nodes[itn_link_info['start']]['coords'][1]
+            end_x = itn_road_nodes[itn_link_info['end']]['coords'][0]
+            end_y = itn_road_nodes[itn_link_info['end']]['coords'][1]
+            start_h = get_height_from_xy(start_x, start_y, hash_table=rc_height_hash_table)
+            end_h = get_height_from_xy(end_x, end_y, hash_table=rc_height_hash_table)
 
-        edge_list.append(
-            Edge(fid=itn_link_index, start_node=start_node, end_node=end_node, length=itn_link_info['length']))
+            start_node = ItnPoint(start_x, start_y, start_h, itn_link_info['start'])
+            end_node = ItnPoint(end_x, end_y, end_h, itn_link_info['end'])
 
-    # work out the weight of edge and get shortest path via networkx
-    graph = networkx.DiGraph()
-    for edge in edge_list:
-        weight = edge.add_weight()
+            edge_list.append(
+                Edge(fid=itn_link_index, start_node=start_node, end_node=end_node, length=itn_link_info['length']))
 
-        edge_start_node = edge.get_geometry()[0]
-        edge_end_node = edge.get_geometry()[1]
+        # work out the weight of edge and get shortest path via networkx
+        graph = networkx.DiGraph()
+        for edge in edge_list:
+            weight = edge.add_weight()
 
-        graph.add_edge(edge_start_node.get_fid(), edge_end_node.get_fid(), fid=edge.get_fid(),
-                       length=edge.get_length(),
-                       weight=weight)
-        graph.add_edge(edge_end_node.get_fid(), edge_start_node.get_fid(), fid=edge.get_fid(),
-                       length=edge.get_length(),
-                       weight=weight)
+            edge_start_node = edge.get_geometry()[0]
+            edge_end_node = edge.get_geometry()[1]
 
-    short_distance_path = networkx.dijkstra_path(G=graph, source=point_start.get_fid(), target=point_end.get_fid(),
-                                                 weight='length')
-    short_time_path = networkx.dijkstra_path(G=graph, source=point_start.get_fid(), target=point_end.get_fid(),
-                                             weight='time')
+            graph.add_edge(edge_start_node.get_fid(), edge_end_node.get_fid(), fid=edge.get_fid(),
+                           length=edge.get_length(),
+                           weight=weight)
+            graph.add_edge(edge_end_node.get_fid(), edge_start_node.get_fid(), fid=edge.get_fid(),
+                           length=edge.get_length(),
+                           weight=weight)
 
-    short_distance_path_df = generate_dataframe(graph, short_distance_path, itn_road_links)
-    short_time_path_df = generate_dataframe(graph, short_time_path, itn_road_links)
+        short_distance_path = networkx.dijkstra_path(G=graph, source=point_start.get_fid(), target=point_end.get_fid(),
+                                                     weight='length')
+        short_time_path = networkx.dijkstra_path(G=graph, source=point_start.get_fid(), target=point_end.get_fid(),
+                                                 weight='time')
 
-    return short_distance_path_df, short_time_path_df
+        short_distance_path_df = generate_dataframe(graph, short_distance_path, itn_road_links)
+        short_time_path_df = generate_dataframe(graph, short_time_path, itn_road_links)
+
+        return short_distance_path_df, short_time_path_df
+    except Exception as error:
+        raise Exception(f'{error} ==> TASK_4')
 
 
 if __name__ == '__main__':
