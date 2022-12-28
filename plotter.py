@@ -6,6 +6,7 @@ import geopandas as gpd
 from constant import CRS_BNG
 
 
+# get distance between 2 given points
 def distance(p1, p2, crs=CRS_BNG):
     pnt1 = Point(p1[0], p1[1])
     pnt2 = Point(p2[0], p2[1])
@@ -48,15 +49,15 @@ class Plotter:
         self.__legend_ax = cax
         self.__base_figure.colorbar(im, cax=cax)
 
-    def add_buffer(self, x, y, radius, **kwargs):
-        buffer_circle = mpatches.Circle((x, y), radius, **kwargs)
-        self.__ax.add_artist(buffer_circle)
+    def add_artist(self, artist):
+        self.__ax.add_artist(artist)
 
+    # reset range of xy
     def set_xy_lim(self, x_min, x_max, y_min, y_max):
         plt.xlim(x_min, x_max)
         plt.ylim(y_min, y_max)
 
-    def add_north(self, label_size=10, loc_x=0.95, loc_y=1, width=0.04, height=0.06, pad=0.1):
+    def add_north(self, label_size=10, loc_x=0.05, loc_y=1, width=0.04, height=0.06, pad=0.1):
         """
         Add a north arrow with 'N' text note
         :param label_size: size of 'N'
@@ -93,13 +94,13 @@ class Plotter:
         size: size
         """
         ax = self.__ax
-        minx, maxx = ax.get_xlim()
-        miny, maxy = ax.get_ylim()
-        x_len = maxx - minx
-        y_len = maxy - miny
+        min_x, max_x = ax.get_xlim()
+        min_y, max_y = ax.get_ylim()
+        x_len = max_x - min_x
+        y_len = max_y - min_y
 
-        lon = minx + x_len * loc_x
-        lat = miny + y_len * (loc_y - pad)
+        lon = min_x + x_len * loc_x
+        lat = min_y + y_len * (loc_y - pad)
 
         ax.hlines(y=lat, xmin=lon, xmax=lon + length, colors="black", ls="-", lw=1)
         ax.vlines(x=lon, ymin=lat, ymax=lat + size, colors="black", ls="-", lw=1)

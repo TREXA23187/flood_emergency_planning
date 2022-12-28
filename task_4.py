@@ -8,6 +8,7 @@ from task_3 import nearest_itn_node
 from constant import CRS_BNG
 
 
+# generate a GeoDataframe of given path of several LineString
 def generate_dataframe(graph, path, road_links):
     short_distance_path_fids = []
     short_distance_path_geometry = []
