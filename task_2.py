@@ -3,10 +3,13 @@ import rasterio
 from rasterio import mask
 import numpy as np
 import time
+import geopandas as gpd
+from constant import CRS_BNG
 
 from geometry import PointWithHeight
 
 elevation = rasterio.open('Material/elevation/SZ.asc')
+isle_of_wight = gpd.read_file('Material/shape/isle_of_wight.shp')
 
 
 def get_xy_from_height(height_value, height_data, transformer=None):
@@ -64,23 +67,15 @@ def highest_point_identify(input_point, buffer_radius):
         print('>>>>>>>>>>>>> Progressing highest_point_identify in TASK_2')
         buffer = input_point.buffer(buffer_radius)
 
-        elev_boundary_right_top = (elevation.bounds[2], elevation.bounds[3])
-        elev_boundary_left_top = (elevation.bounds[0], elevation.bounds[3])
-        elev_boundary_left_bottom = (elevation.bounds[0], elevation.bounds[1])
-        elev_boundary_right_bottom = (elevation.bounds[2], elevation.bounds[1])
-
-        elevation_mbr = Polygon(
-            [elev_boundary_right_top, elev_boundary_left_top, elev_boundary_left_bottom, elev_boundary_right_bottom])
+        # Prevent buffer from exceeding the elevation range
+        mask_cropped_by_isle = buffer.intersection(isle_of_wight.geometry[0])
+        masked_elevation_raster, transformer = rasterio.mask.mask(dataset=elevation, shapes=[mask_cropped_by_isle],
+                                                                  crop=True, nodata=0, filled=False)
 
         row_col_height_hash_table = define_hash()
 
         input_point_height = get_height_from_xy(input_point.x, input_point.y, hash_table=row_col_height_hash_table)
         point_input_with_height = PointWithHeight(input_point.x, input_point.y, input_point_height)
-
-        # Prevent buffer from exceeding the elevation range
-        mask_cropped_by_mbr = buffer.intersection(elevation_mbr)
-        masked_elevation_raster, transformer = rasterio.mask.mask(dataset=elevation, shapes=[mask_cropped_by_mbr],
-                                                                  crop=True, nodata=0, filled=False)
 
         highest_value = np.max(masked_elevation_raster)
         highest_point_x, highest_point_y = get_xy_from_height(height_value=highest_value,
@@ -96,6 +91,6 @@ def highest_point_identify(input_point, buffer_radius):
 
 if __name__ == '__main__':
     input_p, highest_p, rc_height_hash_table = highest_point_identify(Point(450000, 85000), 5000)
-    # print(xy_hash_table[(2500, 4000)])
+    # # print(xy_hash_table[(2500, 4000)])
     print(input_p.get_height())
     print(highest_p.get_geometry())
