@@ -59,8 +59,8 @@ def plot_result(start_point, end_point):
         plotter.add_legend(legend_type='point', legend_label='start point', color='red', markersize=4)
         plotter.add_legend(legend_type='point', legend_label='end point', color='green', markersize=4)
         plotter.add_legend(legend_type='line', legend_label='road', color='brown')
-        plotter.add_legend(legend_type='line', legend_label='shortest distance path', color='blue', linewidth=3)
-        plotter.add_legend(legend_type='line', legend_label='shortest time path', color='red', linewidth=3)
+        plotter.add_legend(legend_type='line', legend_label='shortest distance path', color='red', linewidth=3)
+        plotter.add_legend(legend_type='line', legend_label='shortest time path', color='blue', linewidth=3)
         plotter.add_legend(legend_type='line', legend_label='if paths coincide', color='purple', linewidth=3)
 
         return plotter

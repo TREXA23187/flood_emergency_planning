@@ -9,7 +9,6 @@ def generate_box(x_min, y_min, x_max, y_max):
     return Polygon(((x_min, y_min), (x_max, y_min), (x_max, y_max), (x_min, y_max)))
 
 
-# TODO: add task6 and finish like in README.md
 def user_input():
     try:
         x = float(input('please input a coordinates x: '))
@@ -25,11 +24,11 @@ def user_input():
             if box.contains(input_point) or box.touches(input_point):
                 print(
                     f'>>>>>>>>>>>>> Input Point({input_point.x},{input_point.y}) is inside given bound area in TASK_1')
-                return input_point, 1
+                return input_point
 
             else:
                 print(f'>>>>>>>>>>>>> Input Point({input_point.x},{input_point.y}) is inside given isle area in TASK_1')
-                return input_point, 2
+                return input_point
         else:
             raise Exception(f'Input Point({input_point.x},{input_point.y}) is outside given area')
     except Exception as error:

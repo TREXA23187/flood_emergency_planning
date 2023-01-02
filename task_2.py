@@ -95,7 +95,7 @@ def highest_point_identify(input_point, buffer_radius):
 
 
 if __name__ == '__main__':
-    input_p, highest_p, rc_height_hash_table = highest_point_identify(Point(450000, 85000))
+    input_p, highest_p, rc_height_hash_table = highest_point_identify(Point(450000, 85000), 5000)
     # print(xy_hash_table[(2500, 4000)])
-    # print(input_p.get_height())
-    # print(highest_p.get_geometry())
+    print(input_p.get_height())
+    print(highest_p.get_geometry())

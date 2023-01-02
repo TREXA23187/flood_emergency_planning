@@ -11,7 +11,7 @@ def main():
     try:
         # task 1
         # 435000, 87000
-        user_input_p, state = user_input()
+        user_input_p = user_input()
 
         # task 2
         input_p, highest_p, rc_height_hash_table = highest_point_identify(user_input_p, buffer_radius=buffer_radius)
@@ -27,8 +27,8 @@ def main():
         # task 5
         plotter = plot_result(start_point=input_p, end_point=highest_p)
 
-        plotter.add_vector(short_distance_path, linewidth=3, color='red', alpha=.7)
-        plotter.add_vector(short_time_path, linewidth=3, color='blue', alpha=.6)
+        plotter.add_vector(short_distance_path, linewidth=3, color='blue', alpha=.7)
+        plotter.add_vector(short_time_path, linewidth=3, color='red', alpha=.6)
 
         plotter.show()
     except Exception as error:
