@@ -44,6 +44,7 @@ def shortest_path(point_start, point_end, rc_height_hash_table=None):
         itn_road_links = itn_json['roadlinks']
 
         edge_list = []
+        graph = networkx.DiGraph()
 
         for itn_link_index, itn_link_info in itn_road_links.items():
             # itn_link_index -> 'osgb4000000026240481'
@@ -62,17 +63,13 @@ def shortest_path(point_start, point_end, rc_height_hash_table=None):
             start_node = ItnPoint(start_x, start_y, start_h, itn_link_info['start'])
             end_node = ItnPoint(end_x, end_y, end_h, itn_link_info['end'])
 
-            edge_list.append(
-                Edge(fid=itn_link_index, start_node=start_node, end_node=end_node, length=itn_link_info['length']))
-
-        # work out the weight of edge and get shortest path via networkx
-        graph = networkx.DiGraph()
-        for edge in edge_list:
+            edge = Edge(fid=itn_link_index, start_node=start_node, end_node=end_node, length=itn_link_info['length'])
             weight = edge.add_weight()
 
             edge_start_node = edge.get_geometry()[0]
             edge_end_node = edge.get_geometry()[1]
 
+            # work out the weight of edge and get shortest path via networkx
             graph.add_edge(edge_start_node.get_fid(), edge_end_node.get_fid(), fid=edge.get_fid(),
                            length=edge.get_length(),
                            weight=weight)

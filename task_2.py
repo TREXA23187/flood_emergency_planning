@@ -1,10 +1,9 @@
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point
 import rasterio
 from rasterio import mask
 import numpy as np
 import time
 import geopandas as gpd
-from constant import CRS_BNG
 
 from geometry import PointWithHeight
 
