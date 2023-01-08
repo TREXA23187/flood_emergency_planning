@@ -72,7 +72,7 @@ class Edge(DirectedLine):
     def get_height_diff(self):
         return self.__height_diff
 
-    def add_weight(self):
+    def get_weight(self):
         base_weight = self.__length / speed
 
         # if height_diff is positive, it's ascending -> base_weight+height_weight

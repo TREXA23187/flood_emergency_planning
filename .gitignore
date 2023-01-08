@@ -1,13 +1,9 @@
-.idea
-.vscode
-.DS_Store
-Material
-
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+Material
+.idea
 
 # C extensions
 *.so

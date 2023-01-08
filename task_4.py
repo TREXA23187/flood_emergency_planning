@@ -64,7 +64,6 @@ def shortest_path(point_start, point_end, rc_height_hash_table=None):
             end_node = ItnPoint(end_x, end_y, end_h, itn_link_info['end'])
 
             edge = Edge(fid=itn_link_index, start_node=start_node, end_node=end_node, length=itn_link_info['length'])
-            weight = edge.add_weight()
 
             edge_start_node = edge.get_geometry()[0]
             edge_end_node = edge.get_geometry()[1]
@@ -72,10 +71,10 @@ def shortest_path(point_start, point_end, rc_height_hash_table=None):
             # work out the weight of edge and get shortest path via networkx
             graph.add_edge(edge_start_node.get_fid(), edge_end_node.get_fid(), fid=edge.get_fid(),
                            length=edge.get_length(),
-                           weight=weight)
+                           weight=edge.get_weight())
             graph.add_edge(edge_end_node.get_fid(), edge_start_node.get_fid(), fid=edge.get_fid(),
                            length=edge.get_length(),
-                           weight=weight)
+                           weight=edge.get_weight())
 
         short_distance_path = networkx.dijkstra_path(G=graph, source=point_start.get_fid(), target=point_end.get_fid(),
                                                      weight='length')
